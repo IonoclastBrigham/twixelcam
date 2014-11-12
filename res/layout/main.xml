@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent" android:id="@+id/layout">
+	<TextView android:id="@+id/tv"
+	    android:layout_width="fill_parent"
+		android:layout_height="1400px" android:text="Camera Demo"
+		android:textSize="24sp" />
+
+		<FrameLayout android:id="@+id/preview"
+		android:layout_weight="1" android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+		
+	    
+	    	<SurfaceView android:id="@+id/surface_camera"
+	    android:layout_width="6px" android:layout_height="4px"
+	    android:layout_weight="1">
+	</SurfaceView>
+
+		
+	    				    
+	</FrameLayout>
+
+			<Button android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:id="@+id/buttonClick"
+		android:text="Click" android:layout_gravity="center"></Button>
+
+</LinearLayout>

@@ -1,0 +1,35 @@
+# builds
+*.apk
+*.ap_
+
+# Dex VM
+*.dex
+
+# generated files
+bin/
+gen/
+out/
+platforms/android/ant-build/
+platforms/android/ant-gen/
+
+# Local config
+local.properties
+
+# Windows
+Thumbs.db
+
+# OSX
+.DS_Store
+
+# Eclipse
+.classpath
+.project
+
+# Android Studio
+.idea/workspace.xml
+.idea/dictionaries/
+build/
+
+# Misc Swap
+*~
+*.swp
