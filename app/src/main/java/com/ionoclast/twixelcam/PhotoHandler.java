@@ -1,11 +1,7 @@
 
 
-package com.ionoclast.TC;
+package com.ionoclast.twixelcam;
 
-import java.io.IOException;
-import java.util.List;
-
-import com.ionoclast.R;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.hardware.Camera;
@@ -13,6 +9,9 @@ import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import java.io.IOException;
+import java.util.List;
 
 
 public class PhotoHandler extends SurfaceView implements SurfaceHolder.Callback {

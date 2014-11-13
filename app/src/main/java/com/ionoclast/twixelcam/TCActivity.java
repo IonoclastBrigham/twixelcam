@@ -1,13 +1,6 @@
 
 
-package com.ionoclast.TC;
-
-import java.io.FileNotFoundException;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
+package com.ionoclast.twixelcam;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -17,13 +10,14 @@ import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
-import com.ionoclast.R;
+import java.io.FileOutputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TCActivity extends Activity {
 	private static final String TAG = "CameraDemo";
