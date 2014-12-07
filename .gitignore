@@ -2,7 +2,8 @@
 *.apk
 *.ap_
 
-# Dex VM
+# build intermediates
+*.class
 *.dex
 
 # generated files
@@ -29,6 +30,7 @@ Thumbs.db
 .idea/workspace.xml
 .idea/dictionaries/
 build/
+.gradle/
 
 # Misc Swap
 *~
