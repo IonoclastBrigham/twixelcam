@@ -13,7 +13,6 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -61,8 +60,8 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
     Bitmap twixelateBmp(Bitmap pBitmap) {
         int tWidth = pBitmap.getWidth(), tHeight = pBitmap.getHeight();
         Matrix tXform = new Matrix();
-        tXform.postScale(10.0f / tWidth, 14.0f / tHeight);
         tXform.preRotate(90);
+        tXform.postScale(10.0f / tHeight, 14.0f / tWidth);
         Bitmap tTwixelated = Bitmap.createBitmap(pBitmap, 0, 0,
                 tWidth, tHeight,
                 tXform, false);
@@ -72,7 +71,6 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
 
     @Override
     public void onPreviewFrame(byte[] pYuvData, Camera pCamera) {
-        Log.d(TAG, "onPreviewFrame()");
         Canvas tCanvas = mHolder.lockCanvas();
         if (tCanvas != null) {
             Bitmap tPreviewBmp = decodeBmp(pYuvData);

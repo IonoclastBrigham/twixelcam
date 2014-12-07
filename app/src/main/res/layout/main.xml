@@ -8,12 +8,12 @@
 	android:orientation="vertical" android:layout_width="fill_parent"
 	android:layout_height="fill_parent" android:id="@+id/layout">
 
-    <SurfaceView android:id="@+id/viewTwixelated"
-        android:layout_width="fill_parent" android:layout_height="fill_parent" />
-
     <SurfaceView android:id="@+id/viewViewfinder"
         android:layout_width="100dip" android:layout_height="140dip"
         android:layout_alignParentRight="true" />
+
+    <SurfaceView android:id="@+id/viewTwixelated"
+        android:layout_width="fill_parent" android:layout_height="fill_parent" />
 
     <Button android:id="@+id/btnClick" android:text="Click"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
