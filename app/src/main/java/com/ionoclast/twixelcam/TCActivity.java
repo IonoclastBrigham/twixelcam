@@ -32,6 +32,7 @@ public class TCActivity extends Activity {
 		setContentView(R.layout.main);
 
         mViewViewfinder = (SurfaceView)findViewById(R.id.viewViewfinder);
+        mViewViewfinder.setZOrderMediaOverlay(true);
         mViewTwixelated = (SurfaceView)findViewById(R.id.viewTwixelated);
  
 //		mBtnClick = (Button)findViewById(R.id.btnClick);
