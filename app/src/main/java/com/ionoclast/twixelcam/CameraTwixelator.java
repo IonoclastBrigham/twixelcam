@@ -13,15 +13,19 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 
 
-public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewCallback, Camera.PictureCallback {
     private final String TAG = "CameraTwixelator";
 
     private View mView;
@@ -49,13 +53,17 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
         Log.d(TAG, "surfaceDestroyed()");
     }
 
-    Bitmap decodeBmp(byte[] pYuvData) {
+    Bitmap decodeJpegBmp(byte[] pJpegData) {
+        return BitmapFactory.decodeByteArray(pJpegData, 0, pJpegData.length);
+    }
+
+    Bitmap decodeYuvBmp(byte[] pYuvData) {
         Camera.Size tSize = mCamera.getParameters().getPreviewSize();
         ByteArrayOutputStream tOutStream = new ByteArrayOutputStream();
         YuvImage tYuv = new YuvImage(pYuvData, ImageFormat.NV21, tSize.width, tSize.height, null);
         tYuv.compressToJpeg(new Rect(0, 0, tSize.width, tSize.height), 100, tOutStream);
         byte[] tJpgBytes = tOutStream.toByteArray();
-        return BitmapFactory.decodeByteArray(tJpgBytes, 0, tJpgBytes.length);
+        return decodeJpegBmp(tJpgBytes);
     }
 
     Bitmap twixelateBmp(Bitmap pBitmap) {
@@ -74,8 +82,9 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
     public void onPreviewFrame(byte[] pYuvData, Camera pCamera) {
         Canvas tCanvas = mHolder.lockCanvas();
         if (tCanvas != null) {
-            Bitmap tPreviewBmp = decodeBmp(pYuvData);
+            Bitmap tPreviewBmp = decodeYuvBmp(pYuvData);
             if (tPreviewBmp == null) {
+                // TODO
                 mHolder.unlockCanvasAndPost(tCanvas);
                 return;
             }
@@ -85,6 +94,31 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
             tCanvas.drawBitmap(tTwixelated, tXform, null);
             tTwixelated.recycle();
             mHolder.unlockCanvasAndPost(tCanvas);
+        }
+    }
+
+    @Override
+    public void onPictureTaken(byte[] pJpegData, Camera pCamera) {
+        Bitmap tCapturedBmp = decodeJpegBmp(pJpegData);
+        if (tCapturedBmp == null) {
+            // TODO
+            return;
+        }
+        Bitmap tTwixelated = twixelateBmp(tCapturedBmp);
+        Bitmap tUpScaled = Bitmap.createScaledBitmap(tTwixelated, 400, 560, false);
+        tTwixelated.recycle();
+        try {
+            File tDcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            File tTwixelDir = new File(tDcim, "TwixelCam");
+            tTwixelDir.mkdirs();
+            File tFile = File.createTempFile("twixel", ".png", tTwixelDir);
+            FileOutputStream tOut = new FileOutputStream(tFile);
+            tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
+            tOut.close();
+
+            Toast.makeText(TCActivity.sOnly, "Saved File " + tFile.getPath(), Toast.LENGTH_LONG).show();
+        } catch(Exception e) {
+            Log.e(TAG, "Error", e);
         }
     }
 }

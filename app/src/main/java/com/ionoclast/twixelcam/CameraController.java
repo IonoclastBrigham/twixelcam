@@ -5,7 +5,6 @@
 
 package com.ionoclast.twixelcam;
 
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
@@ -48,7 +47,6 @@ public class CameraController implements SurfaceHolder.Callback {
 
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
-//        mHolder.setFormat(PixelFormat.TRANSPARENT);
 	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
@@ -58,12 +56,11 @@ public class CameraController implements SurfaceHolder.Callback {
 			Camera.Parameters params = mCamera.getParameters();
 			params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 			List<Size> tSupportedSizes = params.getSupportedPictureSizes();
-//			params.setPictureSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
-//                    tSupportedSizes.get(tSupportedSizes.size() - 1).height);
+			params.setPictureSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
+                    tSupportedSizes.get(tSupportedSizes.size() - 1).height);
             tSupportedSizes = params.getSupportedPreviewSizes();
             params.setPreviewSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
                     tSupportedSizes.get(tSupportedSizes.size() - 1).height);
-            params.setPreviewFormat(ImageFormat.NV21);
 			mCamera.setParameters(params);
             mCamera.setDisplayOrientation(90);
 
