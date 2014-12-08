@@ -31,6 +31,21 @@ public class CameraController implements SurfaceHolder.Callback {
         mHolder.addCallback(this);
     }
 
+    public void CloseCamera() {
+        try {
+            if (mCamera != null) {
+                mCamera.stopPreview();
+                mCamera.setPreviewCallback(null);
+                mCamera.release();
+            }
+        }
+        catch (Exception e) {
+            Log.e(TAG, "Camera.release() failed", e);
+        } finally {
+            mCamera = null;
+        }
+    }
+
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
 //        mHolder.setFormat(PixelFormat.TRANSPARENT);

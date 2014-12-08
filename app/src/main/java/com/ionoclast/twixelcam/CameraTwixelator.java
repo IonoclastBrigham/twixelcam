@@ -13,6 +13,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -45,7 +46,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
 }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-//        Log.d(TAG, "surfaceDestroyed()");
+        Log.d(TAG, "surfaceDestroyed()");
     }
 
     Bitmap decodeBmp(byte[] pYuvData) {

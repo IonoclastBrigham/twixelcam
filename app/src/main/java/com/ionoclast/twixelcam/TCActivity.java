@@ -8,7 +8,6 @@ package com.ionoclast.twixelcam;
 import android.app.Activity;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.Button;
 
@@ -16,7 +15,6 @@ import android.widget.Button;
 public class TCActivity extends Activity {
 	private static final String TAG = "TCActivity";
 
-    Camera mCamera;
     SurfaceView mViewViewfinder;
     CameraController mController;
     SurfaceView mViewTwixelated;
@@ -46,24 +44,15 @@ public class TCActivity extends Activity {
     public void onResume() {
         super.onResume();
 
-        mCamera = Camera.open();
-        mController = new CameraController(mViewViewfinder, mCamera);
-        mTwixelator = new CameraTwixelator(mViewTwixelated, mCamera);
+        Camera tCamera = Camera.open();
+        mController = new CameraController(mViewViewfinder, tCamera);
+        mTwixelator = new CameraTwixelator(mViewTwixelated, tCamera);
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        try {
-            if (mCamera != null) {
-                mCamera.release();
-            }
-        }
-        catch (Exception e) {
-            Log.e(TAG, "Camera.release() failed", e);
-        } finally {
-            mCamera = null;
-        }
+        mController.CloseCamera();
     }
 }
