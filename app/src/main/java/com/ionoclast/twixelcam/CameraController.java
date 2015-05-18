@@ -54,7 +54,7 @@ public class CameraController implements SurfaceHolder.Callback {
 		synchronized (this) {
 			// set Camera parameters
 			Camera.Parameters params = mCamera.getParameters();
-			params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+			params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 			List<Size> tSupportedSizes = params.getSupportedPictureSizes();
 			params.setPictureSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
                     tSupportedSizes.get(tSupportedSizes.size() - 1).height);

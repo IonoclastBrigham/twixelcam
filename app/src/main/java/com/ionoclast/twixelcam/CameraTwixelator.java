@@ -73,7 +73,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
         tXform.postScale(10.0f / tHeight, 14.0f / tWidth);
         Bitmap tTwixelated = Bitmap.createBitmap(pBitmap, 0, 0,
                 tWidth, tHeight,
-                tXform, false);
+                tXform, true);
         pBitmap.recycle();
         return tTwixelated;
     }
