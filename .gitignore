@@ -28,10 +28,16 @@ Thumbs.db
 
 # Android Studio
 .idea/workspace.xml
-.idea/dictionaries/
+.idea/tasks.xml
+.idea/modules.xml
+.idea/dictionaries/*
 .idea/codeStyleSettings.xml
+*.iml
+
+# build products and caching/logging
 build/
-.gradle/
+.gradle/*
+.log.gradle
 
 # Misc Swap
 *~
