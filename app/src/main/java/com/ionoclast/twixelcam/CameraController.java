@@ -16,57 +16,57 @@ import java.util.List;
 
 
 public class CameraController implements SurfaceHolder.Callback {
-    private final String TAG = "CameraController";
+	private final String TAG = "CameraController";
 
-    private SurfaceView mView;
-    private SurfaceHolder mHolder;
+	private SurfaceView mView;
+	private SurfaceHolder mHolder;
 	private Camera mCamera;
 
 
 	public CameraController(SurfaceView pViewViewfinder, Camera pCamera) {
-        mCamera = pCamera;
-        mView = pViewViewfinder;
-        mHolder = pViewViewfinder.getHolder();
-        mHolder.addCallback(this);
-    }
+		mCamera = pCamera;
+		mView = pViewViewfinder;
+		mHolder = pViewViewfinder.getHolder();
+		mHolder.addCallback(this);
+	}
 
-    public void CloseCamera() {
-        try {
-            if (mCamera != null) {
-                mCamera.stopPreview();
-                mCamera.setPreviewCallback(null);
-                mCamera.release();
-            }
-        }
-        catch (Exception e) {
-            Log.e(TAG, "Camera.release() failed", e);
-        } finally {
-            mCamera = null;
-        }
-    }
+	public void CloseCamera() {
+		try {
+			if (mCamera != null) {
+				mCamera.stopPreview();
+				mCamera.setPreviewCallback(null);
+				mCamera.release();
+			}
+		}
+		catch (Exception e) {
+			Log.e(TAG, "Camera.release() failed", e);
+		} finally {
+			mCamera = null;
+		}
+	}
 
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
+		Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
 	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
-        Log.d(TAG, "surfaceCreated()");
+		Log.d(TAG, "surfaceCreated()");
 		synchronized (this) {
 			// set Camera parameters
 			Camera.Parameters params = mCamera.getParameters();
 			params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 			List<Size> tSupportedSizes = params.getSupportedPictureSizes();
 			params.setPictureSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
-                    tSupportedSizes.get(tSupportedSizes.size() - 1).height);
-            tSupportedSizes = params.getSupportedPreviewSizes();
-            params.setPreviewSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
-                    tSupportedSizes.get(tSupportedSizes.size() - 1).height);
+					tSupportedSizes.get(tSupportedSizes.size() - 1).height);
+			tSupportedSizes = params.getSupportedPreviewSizes();
+			params.setPreviewSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
+					tSupportedSizes.get(tSupportedSizes.size() - 1).height);
 			mCamera.setParameters(params);
-            mCamera.setDisplayOrientation(90);
+			mCamera.setDisplayOrientation(90);
 
-            try {
-                mCamera.setPreviewDisplay(mHolder);
-                mCamera.startPreview();
+			try {
+				mCamera.setPreviewDisplay(mHolder);
+				mCamera.startPreview();
 			}
 			catch (IOException e) {
 				Log.w(TAG, "Error setting preview display", e);
@@ -75,6 +75,6 @@ public class CameraController implements SurfaceHolder.Callback {
 	}
 
 	public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d(TAG, "surfaceDestroyed()");
+		Log.d(TAG, "surfaceDestroyed()");
 	}
 }
