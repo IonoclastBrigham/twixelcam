@@ -47,7 +47,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
     public void surfaceCreated(SurfaceHolder holder) {
 //        Log.d(TAG, "surfaceCreated()");
         mCamera.setPreviewCallback(this);
-}
+    }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(TAG, "surfaceDestroyed()");
@@ -110,7 +110,12 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
         try {
             File tDcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
             File tTwixelDir = new File(tDcim, "TwixelCam");
-            tTwixelDir.mkdirs();
+            if(!tTwixelDir.exists() && !tTwixelDir.mkdirs())
+            {
+                Log.e(TAG, "Error: unable to create output dir");
+                Toast.makeText(TCActivity.sOnly, "Error Creating Output Dir", Toast.LENGTH_LONG).show();
+                return;
+            }
             File tFile = File.createTempFile("twixel", ".png", tTwixelDir);
             FileOutputStream tOut = new FileOutputStream(tFile);
             tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
@@ -119,6 +124,8 @@ public class CameraTwixelator implements SurfaceHolder.Callback, Camera.PreviewC
             Toast.makeText(TCActivity.sOnly, "Saved File " + tFile.getPath(), Toast.LENGTH_LONG).show();
         } catch(Exception e) {
             Log.e(TAG, "Error", e);
+        } finally {
+            tUpScaled.recycle();
         }
     }
 }
