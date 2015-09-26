@@ -39,6 +39,6 @@ build/
 .gradle/*
 .log.gradle
 
-# Misc Swap
+# misc swap and backup files
 *~
 *.swp
