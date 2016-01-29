@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion "21.1.1"
+    compileSdkVersion 22
+    buildToolsVersion "21.1.2"
     dexOptions {
         incremental true
     }
@@ -13,7 +13,7 @@ android {
     defaultConfig {
         applicationId "com.ionoclast.twixelcam"
         minSdkVersion 15
-        targetSdkVersion 19
+        targetSdkVersion 22
     }
     productFlavors {
     }

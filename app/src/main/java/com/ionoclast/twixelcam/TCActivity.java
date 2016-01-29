@@ -1,12 +1,11 @@
 // TCActivity.java
 // Twixel main activity
-// TwixelCam Copyright © 2014 Brigham Toskin, Christopher Tooley
+// TwixelCam Copyright © 2014-2016 Brigham Toskin, Christopher Tooley
 
 
 package com.ionoclast.twixelcam;
 
 import android.app.Activity;
-import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.SurfaceView;
 import android.view.View;
@@ -14,22 +13,19 @@ import android.widget.Button;
 
 
 public class TCActivity extends Activity {
-	private static final String TAG = "TCActivity";
-
-	static TCActivity sOnly = null;
+	private static final String TAG = TCActivity.class.getSimpleName();
 
 	SurfaceView mViewViewfinder;
 	CameraController mController;
 	SurfaceView mViewTwixelated;
-	CameraTwixelator mTwixelator;
 
 	Button mBtnClick;
 
 	
 	/** Called when the activity is first created. */
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		sOnly = this;
+	public void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
@@ -41,23 +37,27 @@ public class TCActivity extends Activity {
 	}
 
 	@Override
-	public void onResume() {
+	public void onResume()
+	{
 		super.onResume();
 
-		final Camera tCamera = Camera.open();
-		mController = new CameraController(mViewViewfinder, tCamera);
-		mTwixelator = new CameraTwixelator(mViewTwixelated, tCamera);
-		mBtnClick.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				tCamera.takePicture(null, null, mTwixelator);
+		CameraTwixelator tTwixelator = new CameraTwixelator(mViewTwixelated);
+		mController = new CameraController(mViewViewfinder);
+		mController.SetTwiddler(tTwixelator);
+
+		mBtnClick.setOnClickListener(new View.OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				mController.TakePhoto();
 			}
 		});
 	}
 
 	@Override
-	public void onPause() {
+	public void onPause()
+	{
 		super.onPause();
-
 		mController.CloseCamera();
 	}
 }

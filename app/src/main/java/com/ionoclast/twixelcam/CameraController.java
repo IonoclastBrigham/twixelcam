@@ -1,6 +1,6 @@
 // CameraController.java
 // Camera preview and control code
-// TwixelCam Copyright © 2014 Brigham Toskin, Christopher Tooley
+// TwixelCam - Copyright © 2014-2016 Brigham Toskin, Christopher Tooley
 
 
 package com.ionoclast.twixelcam;
@@ -15,43 +15,71 @@ import java.io.IOException;
 import java.util.List;
 
 
-public class CameraController implements SurfaceHolder.Callback {
-	private final String TAG = "CameraController";
+public class CameraController implements SurfaceHolder.Callback
+{
+	private static final String TAG = CameraController.class.getSimpleName();
 
-	private SurfaceView mView;
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
 
+	private ICameraTwiddler mTwiddler;
 
-	public CameraController(SurfaceView pViewViewfinder, Camera pCamera) {
-		mCamera = pCamera;
-		mView = pViewViewfinder;
+
+	public CameraController(SurfaceView pViewViewfinder)
+	{
+		mCamera = Camera.open();
 		mHolder = pViewViewfinder.getHolder();
 		mHolder.addCallback(this);
 	}
 
-	public void CloseCamera() {
+	public void SetTwiddler(ICameraTwiddler pTwiddler)
+	{
+		if(mCamera != null)
+		{
+			mTwiddler = pTwiddler;
+			if(pTwiddler != null)
+			{
+				pTwiddler.AttachCamera(mCamera);
+			}
+		}
+	}
+
+	public void TakePhoto()
+	{
+		mCamera.takePicture(null, null, mTwiddler);
+	}
+
+	public void CloseCamera()
+	{
 		try {
-			if (mCamera != null) {
+			if (mCamera != null)
+			{
 				mCamera.stopPreview();
 				mCamera.setPreviewCallback(null);
 				mCamera.release();
 			}
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			Log.e(TAG, "Camera.release() failed", e);
-		} finally {
+		}
+		finally
+		{
+			mTwiddler = null;
 			mCamera = null;
 		}
 	}
 
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+	{
 		Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
 	}
 
-	public void surfaceCreated(SurfaceHolder holder) {
+	public void surfaceCreated(SurfaceHolder holder)
+	{
 		Log.d(TAG, "surfaceCreated()");
-		synchronized (this) {
+		synchronized (this)
+		{
 			// set Camera parameters
 			Camera.Parameters params = mCamera.getParameters();
 			params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
@@ -68,13 +96,15 @@ public class CameraController implements SurfaceHolder.Callback {
 				mCamera.setPreviewDisplay(mHolder);
 				mCamera.startPreview();
 			}
-			catch (IOException e) {
+			catch (IOException e)
+			{
 				Log.w(TAG, "Error setting preview display", e);
 			}
 		}
 	}
 
-	public void surfaceDestroyed(SurfaceHolder holder) {
+	public void surfaceDestroyed(SurfaceHolder holder)
+	{
 		Log.d(TAG, "surfaceDestroyed()");
 	}
 }
