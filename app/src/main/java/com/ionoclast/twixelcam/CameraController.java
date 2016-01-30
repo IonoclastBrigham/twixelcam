@@ -5,6 +5,7 @@
 
 package com.ionoclast.twixelcam;
 
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
@@ -81,15 +82,20 @@ public class CameraController implements SurfaceHolder.Callback
 		synchronized (this)
 		{
 			// set Camera parameters
-			Camera.Parameters params = mCamera.getParameters();
-			params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-			List<Size> tSupportedSizes = params.getSupportedPictureSizes();
-			params.setPictureSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
-					tSupportedSizes.get(tSupportedSizes.size() - 1).height);
-			tSupportedSizes = params.getSupportedPreviewSizes();
-			params.setPreviewSize(tSupportedSizes.get(tSupportedSizes.size() - 1).width,
-					tSupportedSizes.get(tSupportedSizes.size() - 1).height);
-			mCamera.setParameters(params);
+			Camera.Parameters tParams = mCamera.getParameters();
+			tParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+			tParams.setPreviewFormat(ImageFormat.NV21);
+
+
+			List<Size> tSupportedSizes = tParams.getSupportedPictureSizes();
+			Size tBiggest = tSupportedSizes.get(tSupportedSizes.size() - 1);
+			tParams.setPictureSize(tBiggest.width, tBiggest.height);
+
+			tSupportedSizes = tParams.getSupportedPreviewSizes();
+			tBiggest = tSupportedSizes.get(tSupportedSizes.size() - 1);
+			tParams.setPreviewSize(tBiggest.width, tBiggest.height);
+
+			mCamera.setParameters(tParams);
 			mCamera.setDisplayOrientation(90);
 
 			try {

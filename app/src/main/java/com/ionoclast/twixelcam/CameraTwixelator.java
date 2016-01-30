@@ -9,7 +9,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -25,6 +24,9 @@ import android.widget.Toast;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
+
+import fi.gekkio.roboticchameleon.RoboticChameleon;
 
 
 public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
@@ -41,7 +43,9 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 	private View mView;
 	private SurfaceHolder mHolder;
 	private boolean mHaveSurface = false;
-	Camera.Size mSize;
+
+	Camera.Size mPreviewSize;
+	int mPreviewFormat;
 
 
 	public CameraTwixelator(SurfaceView pViewTwixelated)
@@ -53,7 +57,8 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 
 	public void AttachCamera(Camera pCamera)
 	{
-		mSize = pCamera.getParameters().getPreviewSize();
+		mPreviewSize = pCamera.getParameters().getPreviewSize();
+		mPreviewFormat = pCamera.getParameters().getPreviewFormat();
 		pCamera.setPreviewCallback(this);
 	}
 
@@ -72,18 +77,23 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		mHaveSurface = false;
 	}
 
-	Bitmap decodeJpegBmp(byte[] pJpegData)
+	private Bitmap decodeJpegBmp(byte[] pJpegData)
 	{
-		return BitmapFactory.decodeByteArray(pJpegData, 0, pJpegData.length);
+		BitmapFactory.Options tOptions = new BitmapFactory.Options();
+		tOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+		return BitmapFactory.decodeByteArray(pJpegData, 0, pJpegData.length, tOptions);
 	}
 
-	Bitmap decodeYuvBmp(byte[] pYuvData)
+	private Bitmap decodeYuvPreview(byte[] pYuvData)
 	{
-		ByteArrayOutputStream tOutStream = new ByteArrayOutputStream();
-		YuvImage tYuv = new YuvImage(pYuvData, ImageFormat.NV21, mSize.width, mSize.height, null);
-		tYuv.compressToJpeg(new Rect(0, 0, mSize.width, mSize.height), 100, tOutStream);
-		byte[] tJpgBytes = tOutStream.toByteArray();
-		return decodeJpegBmp(tJpgBytes);
+//		ByteArrayOutputStream tOutStream = new ByteArrayOutputStream(pYuvData.length);
+//		YuvImage tYuv = new YuvImage(pYuvData, mPreviewFormat, mPreviewSize.width, mPreviewSize.height, null);
+//		tYuv.compressToJpeg(new Rect(0, 0, mPreviewSize.width, mPreviewSize.height), 100, tOutStream);
+//		return decodeJpegBmp(tOutStream.toByteArray());
+		ByteBuffer tOutBuf = ByteBuffer.allocate(pYuvData.length);
+		RoboticChameleon.fromNV21().toRGB565(ByteBuffer.wrap(pYuvData), 0, 0,
+											 tOutBuf, 0,
+											 mPreviewSize.width, mPreviewSize.height);
 	}
 
 	Bitmap twixelateBmp(Bitmap pBitmap)
@@ -110,7 +120,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		Canvas tCanvas = mHolder.lockCanvas();
 		if (tCanvas != null)
 		{
-			Bitmap tPreviewBmp = decodeYuvBmp(pYuvData);
+			Bitmap tPreviewBmp = decodeYuvPreview(pYuvData);
 			if (tPreviewBmp == null)
 			{
 				// TODO

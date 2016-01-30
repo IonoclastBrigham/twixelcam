@@ -30,4 +30,5 @@ android {
 }
 
 dependencies {
+    compile 'fi.gekkio.roboticchameleon:robotic-chameleon:0.1.+'
 }
