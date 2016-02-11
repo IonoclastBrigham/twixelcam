@@ -22,7 +22,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
+import com.ionoclast.util.ByteArrayWrapperOutputStream;
+
 import java.io.File;
 import java.io.FileOutputStream;
 
@@ -44,9 +45,13 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 	private SurfaceHolder mHolder;
 	private boolean mHaveSurface = false;
 
-	Camera mCamera;
-	Camera.Size mPreviewSize;
-	int mPreviewFormat;
+	private Camera.Size mPreviewDimens;
+	private int mPreviewFormat;
+
+	private ByteArrayWrapperOutputStream mJpgBytesOutStream;
+	private Rect mYuvArea;
+	private BitmapFactory.Options mBmpOptions;
+	private Matrix mTwixelateXform;
 
 
 	public CameraTwixelator(SurfaceView pViewTwixelated)
@@ -58,10 +63,29 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 
 	public void AttachCamera(Camera pCamera)
 	{
-		mPreviewSize = pCamera.getParameters().getPreviewSize();
-		mPreviewFormat = pCamera.getParameters().getPreviewFormat();
+		Camera.Parameters tParams = pCamera.getParameters();
+
+		mPreviewDimens = tParams.getPreviewSize();
+		mPreviewFormat = tParams.getPreviewFormat();
+		initJpgBuffer(tParams);
+
+		mYuvArea = new Rect(0, 0, mPreviewDimens.width, mPreviewDimens.height);
+		mBmpOptions = new BitmapFactory.Options();
+		mBmpOptions.inPreferredConfig = Config.RGB_565;
+		mTwixelateXform = new Matrix();
+
 		pCamera.setPreviewCallback(this);
-		mCamera = pCamera;
+	}
+
+	private void initJpgBuffer(Camera.Parameters pParams)
+	{
+		// as a hard upper limit, we need W * H * 16bits of working memory,
+		// picking the larger of the preview or the picture capture size.
+		Camera.Size tPicDimens = pParams.getPictureSize();
+		int maxBufSize = Math.max(mPreviewDimens.width * mPreviewDimens.height,
+								  tPicDimens.width * tPicDimens.height) * 2;
+
+		mJpgBytesOutStream = new ByteArrayWrapperOutputStream(new byte[maxBufSize]);
 	}
 
 	@Override
@@ -84,30 +108,26 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 
 	private Bitmap decode_jpg_data(byte[] pBmpData, int length)
 	{
-		BitmapFactory.Options tOptions = new BitmapFactory.Options();
-		tOptions.inPreferredConfig = Config.RGB_565;
-		return BitmapFactory.decodeByteArray(pBmpData, 0, length, tOptions);
+		return BitmapFactory.decodeByteArray(pBmpData, 0, length, mBmpOptions);
 	}
 
 	private Bitmap decode_yuv_preview(byte[] pYuvData)
 	{
-		ByteArrayOutputStream tOutStream = new ByteArrayOutputStream(pYuvData.length);
-		YuvImage tYuv = new YuvImage(pYuvData, mPreviewFormat, mPreviewSize.width, mPreviewSize.height, null);
-		tYuv.compressToJpeg(new Rect(0, 0, mPreviewSize.width, mPreviewSize.height), 100, tOutStream);
-		return decode_jpg_data(tOutStream.toByteArray(), tOutStream.size());
+		mJpgBytesOutStream.reset();
+		YuvImage tYuv = new YuvImage(pYuvData, mPreviewFormat, mPreviewDimens.width, mPreviewDimens.height, null);
+		tYuv.compressToJpeg(mYuvArea, 100, mJpgBytesOutStream);
+		return decode_jpg_data(mJpgBytesOutStream.toByteArray(), mJpgBytesOutStream.size());
 	}
 
 	private Bitmap twixelate_bmp(Bitmap pBitmap)
 	{
 		int tWidth = pBitmap.getWidth(), tHeight = pBitmap.getHeight();
-		Matrix tXform = new Matrix();
-		tXform.preRotate(90);
-		tXform.postScale(10.0f / tHeight, 14.0f / tWidth);
-		Bitmap tTwixelated = Bitmap.createBitmap(pBitmap, 0, 0,
-				tWidth, tHeight,
-				tXform, true);
-		pBitmap.recycle();
-		return tTwixelated;
+		mTwixelateXform.reset();
+		mTwixelateXform.preRotate(90);
+		mTwixelateXform.postScale(10.0f / tHeight, 14.0f / tWidth);
+		return Bitmap.createBitmap(pBitmap, 0, 0,
+								   tWidth, tHeight,
+								   mTwixelateXform, true);
 	}
 
 	@Override
@@ -129,9 +149,9 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 				return;
 			}
 			Bitmap tTwixelated = twixelate_bmp(tPreviewBmp);
-			Matrix tXform = new Matrix();
-			tXform.setScale(mView.getWidth() / 10.0f, mView.getHeight() / 14.0f);
-			tCanvas.drawBitmap(tTwixelated, tXform, null);
+			mTwixelateXform.reset();
+			mTwixelateXform.setScale(mView.getWidth() / 10.0f, mView.getHeight() / 14.0f);
+			tCanvas.drawBitmap(tTwixelated, mTwixelateXform, null);
 			tTwixelated.recycle();
 			mHolder.unlockCanvasAndPost(tCanvas);
 		}
@@ -190,7 +210,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 
 			// kick start the camera back up
 			// TODO: move to controller; onActivityResult()?
-			mCamera.startPreview();
+			pCamera.startPreview();
 		}
 	}
 }

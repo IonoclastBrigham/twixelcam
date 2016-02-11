@@ -107,16 +107,13 @@ public class CameraController implements SurfaceHolder.Callback
 	public void surfaceCreated(SurfaceHolder holder)
 	{
 		Log.d(TAG, "surfaceCreated()");
-		synchronized (this)
+		try {
+			mCamera.setPreviewDisplay(mHolder);
+			mCamera.startPreview();
+		}
+		catch (IOException e)
 		{
-			try {
-				mCamera.setPreviewDisplay(mHolder);
-				mCamera.startPreview();
-			}
-			catch (IOException e)
-			{
-				Log.w(TAG, "Error setting preview display", e);
-			}
+			Log.w(TAG, "Error starting preview", e);
 		}
 	}
 
