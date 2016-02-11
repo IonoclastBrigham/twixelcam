@@ -7,7 +7,6 @@ package com.ionoclast.twixelcam;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
-import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -28,9 +27,35 @@ public class CameraController implements SurfaceHolder.Callback
 
 	public CameraController(SurfaceView pViewViewfinder)
 	{
-		mCamera = Camera.open();
 		mHolder = pViewViewfinder.getHolder();
 		mHolder.addCallback(this);
+
+		mCamera = Camera.open();
+
+		// set Camera parameters
+		Camera.Parameters tParams = mCamera.getParameters();
+		tParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+		tParams.setPreviewFormat(ImageFormat.NV21);
+
+
+		List<Camera.Size> tSupportedSizes = tParams.getSupportedPictureSizes();
+		Camera.Size tSmallest = tSupportedSizes.get(tSupportedSizes.size() - 1);
+		tParams.setPictureSize(tSmallest.width, tSmallest.height);
+
+		tSupportedSizes = tParams.getSupportedPreviewSizes();
+		tSmallest = tSupportedSizes.get(tSupportedSizes.size() - 1);
+		tParams.setPreviewSize(tSmallest.width, tSmallest.height);
+
+		try
+		{
+			// this can throw if the camera doesn't like our settings
+			mCamera.setParameters(tParams);
+		}
+		catch(RuntimeException e)
+		{
+			Log.e(TAG, "Error setting camera params; attempting to proceed", e);
+		}
+		mCamera.setDisplayOrientation(90);
 	}
 
 	public void SetTwiddler(ICameraTwiddler pTwiddler)
@@ -52,7 +77,8 @@ public class CameraController implements SurfaceHolder.Callback
 
 	public void CloseCamera()
 	{
-		try {
+		try
+		{
 			if (mCamera != null)
 			{
 				mCamera.stopPreview();
@@ -71,33 +97,18 @@ public class CameraController implements SurfaceHolder.Callback
 		}
 	}
 
+	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
 	{
 		Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
 	}
 
+	@Override
 	public void surfaceCreated(SurfaceHolder holder)
 	{
 		Log.d(TAG, "surfaceCreated()");
 		synchronized (this)
 		{
-			// set Camera parameters
-			Camera.Parameters tParams = mCamera.getParameters();
-			tParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-			tParams.setPreviewFormat(ImageFormat.NV21);
-
-
-			List<Size> tSupportedSizes = tParams.getSupportedPictureSizes();
-			Size tBiggest = tSupportedSizes.get(tSupportedSizes.size() - 1);
-			tParams.setPictureSize(tBiggest.width, tBiggest.height);
-
-			tSupportedSizes = tParams.getSupportedPreviewSizes();
-			tBiggest = tSupportedSizes.get(tSupportedSizes.size() - 1);
-			tParams.setPreviewSize(tBiggest.width, tBiggest.height);
-
-			mCamera.setParameters(tParams);
-			mCamera.setDisplayOrientation(90);
-
 			try {
 				mCamera.setPreviewDisplay(mHolder);
 				mCamera.startPreview();
@@ -109,6 +120,7 @@ public class CameraController implements SurfaceHolder.Callback
 		}
 	}
 
+	@Override
 	public void surfaceDestroyed(SurfaceHolder holder)
 	{
 		Log.d(TAG, "surfaceDestroyed()");

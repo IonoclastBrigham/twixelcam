@@ -12,7 +12,8 @@ import android.view.View;
 import android.widget.Button;
 
 
-public class TCActivity extends Activity {
+public class TCActivity extends Activity
+{
 	private static final String TAG = TCActivity.class.getSimpleName();
 
 	SurfaceView mViewViewfinder;
@@ -22,7 +23,6 @@ public class TCActivity extends Activity {
 	Button mBtnClick;
 
 	
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -59,5 +59,7 @@ public class TCActivity extends Activity {
 	{
 		super.onPause();
 		mController.CloseCamera();
+		mController = null;
+		mBtnClick.setOnClickListener(null);
 	}
 }
