@@ -15,7 +15,12 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -41,13 +46,15 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		TWIXEL_DIR = new File(tDcim, "TwixelCam");
 	}
 
+	Context mCtxt;
+
 	private View mView;
 	private SurfaceHolder mHolder;
 	private boolean mHaveSurface = false;
 
 	private Camera.Size mPreviewDimens;
 	private int mPreviewFormat;
-
+	private Handler mRenderThread;
 	private ByteArrayWrapperOutputStream mJpgBytesOutStream;
 	private Rect mYuvArea;
 	private BitmapFactory.Options mBmpOptions;
@@ -59,8 +66,15 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		mView = pViewTwixelated;
 		mHolder = pViewTwixelated.getHolder();
 		mHolder.addCallback(this);
+		mCtxt = pViewTwixelated.getContext();
+
+		HandlerThread tThread = new HandlerThread("twixelator");
+		tThread.start();
+		mRenderThread = new Handler(tThread.getLooper(),
+									new TwixelatorCallback());
 	}
 
+	@Override
 	public void AttachCamera(Camera pCamera)
 	{
 		Camera.Parameters tParams = pCamera.getParameters();
@@ -86,6 +100,14 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 								  tPicDimens.width * tPicDimens.height) * 2;
 
 		mJpgBytesOutStream = new ByteArrayWrapperOutputStream(new byte[maxBufSize]);
+	}
+
+	@Override
+	public void CleanUp()
+	{
+		mRenderThread.removeCallbacksAndMessages(null);
+		mRenderThread.getLooper().getThread().interrupt();
+		mRenderThread = null;
 	}
 
 	@Override
@@ -131,86 +153,127 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 	}
 
 	@Override
-	public void onPreviewFrame(byte[] pYuvData, Camera pCamera)
+	public void onPreviewFrame(final byte[] pYuvData, Camera pCamera)
 	{
-		if(!mHaveSurface)
-		{
-			return;
-		}
+		// we have to decode on the UI thread, because the buffer may be reused
+		Bitmap tPreviewBmp = decode_yuv_preview(pYuvData);
 
-		Canvas tCanvas = mHolder.lockCanvas();
-		if (tCanvas != null)
-		{
-			Bitmap tPreviewBmp = decode_yuv_preview(pYuvData);
-			if (tPreviewBmp == null)
-			{
-				// TODO
-				mHolder.unlockCanvasAndPost(tCanvas);
-				return;
-			}
-			Bitmap tTwixelated = twixelate_bmp(tPreviewBmp);
-			mTwixelateXform.reset();
-			mTwixelateXform.setScale(mView.getWidth() / 10.0f, mView.getHeight() / 14.0f);
-			tCanvas.drawBitmap(tTwixelated, mTwixelateXform, null);
-			tTwixelated.recycle();
-			mHolder.unlockCanvasAndPost(tCanvas);
-		}
+		Message tMessage = new Message();
+		tMessage.what = 0;
+		Bundle args = new Bundle();
+		args.putParcelable(TwixelatorCallback.ARG_FULL_IMAGE, tPreviewBmp);
+		tMessage.setData(args);
+		mRenderThread.dispatchMessage(tMessage);
 	}
 
 	@Override
-	public void onPictureTaken(byte[] pJpegData, Camera pCamera)
+	public void onPictureTaken(final byte[] pJpegData, final Camera pCamera)
 	{
-		// get twixelated bitmap
-		Bitmap tCapturedBmp = decode_jpg_data(pJpegData, pJpegData.length);
-		if (tCapturedBmp == null)
+		new AsyncTask<Void, Void, Void>()
 		{
-			// TODO
-			return;
-		}
-		Bitmap tTwixelated = twixelate_bmp(tCapturedBmp);
-		Bitmap tUpScaled = Bitmap.createScaledBitmap(tTwixelated, 400, 560, false);
-		tTwixelated.recycle();
-		tCapturedBmp.recycle();
-
-		// write file
-		FileOutputStream tOut = null;
-		try
-		{
-			Context tCtxt = mView.getContext();
-			if(!TWIXEL_DIR.exists() && !TWIXEL_DIR.mkdirs())
+			@Override
+			protected Void doInBackground(Void[] params)
 			{
-				Log.e(TAG, "Error: unable to create output dir");
-				Toast.makeText(tCtxt, "Error Creating Output Dir", Toast.LENGTH_LONG).show();
-				return;
+				// get twixelated bitmap
+				Bitmap tCapturedBmp = decode_jpg_data(pJpegData, pJpegData.length);
+				if(tCapturedBmp == null)
+				{
+					// TODO
+					return null;
+				}
+				Bitmap tTwixelated = twixelate_bmp(tCapturedBmp);
+				tCapturedBmp.recycle();
+				Bitmap tUpScaled = Bitmap.createScaledBitmap(tTwixelated, 400, 560, false);
+				tTwixelated.recycle();
+
+				// write file
+				FileOutputStream tOut = null;
+				try
+				{
+					if(!TWIXEL_DIR.exists() && !TWIXEL_DIR.mkdirs())
+					{
+						Log.e(TAG, "Error: unable to create output dir");
+						Toast.makeText(mCtxt, "Error Creating Output Dir", Toast.LENGTH_LONG).show();
+						return null;
+					}
+
+					File tFile = File.createTempFile("twixel", ".png", TWIXEL_DIR);
+					tOut = new FileOutputStream(tFile);
+					tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
+
+					// force update media database
+					mCtxt.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://" + tFile.toString())));
+				}
+				catch(Exception e)
+				{
+					Log.e(TAG, "Error", e);
+				}
+				finally
+				{
+					try
+					{
+						tOut.close();
+					}
+					catch(Exception e)
+					{
+						// ignore
+					}
+					tUpScaled.recycle();
+				}
+
+				return null;
 			}
 
-			File tFile = File.createTempFile("twixel", ".png", TWIXEL_DIR);
-			tOut = new FileOutputStream(tFile);
-			tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
-
-			// force update media database
-			tCtxt.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-					Uri.parse("file://" + tFile.toString())));
-		}
-		catch(Exception e)
-		{
-			Log.e(TAG, "Error", e);
-		}
-		finally
-		{
-			try
+			@Override
+			protected void onPostExecute(Void aVoid)
 			{
-				tOut.close();
+				// kick start the camera back up
+				// TODO: move to controller; onActivityResult()?
+				pCamera.startPreview();
 			}
-			catch(Exception e)
-			{
-				// ignore
-			}
-			tUpScaled.recycle();
+		}.execute();
+	}
 
-			// kick start the camera back up
-			// TODO: move to controller; onActivityResult()?
-			pCamera.startPreview();
+	private class TwixelatorCallback implements Handler.Callback
+	{
+		public static final String ARG_FULL_IMAGE = "full_image";
+
+		@Override
+		public boolean handleMessage(Message pMsg)
+		{
+			Bitmap tPreviewBmp = pMsg.getData().getParcelable(ARG_FULL_IMAGE);
+			if (tPreviewBmp == null)
+			{
+				// TODO
+				return false;
+			}
+
+			final Bitmap tTwixelated =  twixelate_bmp(tPreviewBmp);
+			tPreviewBmp.recycle();
+
+			mView.post(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					if(!mHaveSurface)
+					{
+						return;
+					}
+
+					Canvas tCanvas = mHolder.lockCanvas();
+					if (tCanvas != null)
+					{
+						mTwixelateXform.reset();
+						mTwixelateXform.setScale(mView.getWidth() / 10.0f, mView.getHeight() / 14.0f);
+						tCanvas.drawBitmap(tTwixelated, mTwixelateXform, null);
+						tTwixelated.recycle();
+						mHolder.unlockCanvasAndPost(tCanvas);
+					}
+				}
+			});
+
+			return false;
 		}
 	}
 }

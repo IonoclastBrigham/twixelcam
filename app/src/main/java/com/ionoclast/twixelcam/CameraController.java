@@ -83,6 +83,7 @@ public class CameraController implements SurfaceHolder.Callback
 			{
 				mCamera.stopPreview();
 				mCamera.setPreviewCallback(null);
+				mCamera.setPreviewDisplay(null);
 				mCamera.release();
 			}
 		}
@@ -92,15 +93,11 @@ public class CameraController implements SurfaceHolder.Callback
 		}
 		finally
 		{
+			mTwiddler.CleanUp();
 			mTwiddler = null;
 			mCamera = null;
+			mHolder.removeCallback(this);
 		}
-	}
-
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
-	{
-		Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
 	}
 
 	@Override
@@ -115,6 +112,12 @@ public class CameraController implements SurfaceHolder.Callback
 		{
 			Log.w(TAG, "Error starting preview", e);
 		}
+	}
+
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+	{
+		Log.d(TAG, String.format("surfaceChanged(%d x %d)", width, height));
 	}
 
 	@Override
