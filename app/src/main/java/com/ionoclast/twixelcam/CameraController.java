@@ -100,6 +100,11 @@ public class CameraController implements SurfaceHolder.Callback
 		}
 	}
 
+	public void OpenGallery()
+	{
+		mTwiddler.OpenGallery();
+	}
+
 	@Override
 	public void surfaceCreated(SurfaceHolder holder)
 	{

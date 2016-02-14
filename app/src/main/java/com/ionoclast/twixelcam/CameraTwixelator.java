@@ -71,7 +71,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		HandlerThread tThread = new HandlerThread("twixelator");
 		tThread.start();
 		mRenderThread = new Handler(tThread.getLooper(),
-									new TwixelatorCallback());
+									new TwixelatorPreviewCallback());
 	}
 
 	@Override
@@ -108,6 +108,17 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		mRenderThread.removeCallbacksAndMessages(null);
 		mRenderThread.getLooper().getThread().interrupt();
 		mRenderThread = null;
+	}
+
+	@Override
+	public void OpenGallery()
+	{
+		Intent gal = new Intent(Intent.ACTION_VIEW, Uri.fromFile(TWIXEL_DIR));
+		gal.setType("image/png");
+//		gal.setData(Uri.fromFile(TWIXEL_DIR.listFiles()[0]));
+//		gal.setData(Uri.fromFile(TWIXEL_DIR));
+//		mCtxt.startActivity(Intent.createChooser(gal, "Gallery"));
+		mCtxt.startActivity(gal);
 	}
 
 	@Override
@@ -161,7 +172,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		Message tMessage = new Message();
 		tMessage.what = 0;
 		Bundle args = new Bundle();
-		args.putParcelable(TwixelatorCallback.ARG_FULL_IMAGE, tPreviewBmp);
+		args.putParcelable(TwixelatorPreviewCallback.ARG_FULL_IMAGE, tPreviewBmp);
 		tMessage.setData(args);
 		mRenderThread.dispatchMessage(tMessage);
 	}
@@ -202,7 +213,8 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 					tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
 
 					// force update media database
-					mCtxt.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://" + tFile.toString())));
+					mCtxt.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+												   Uri.fromFile(tFile)));
 				}
 				catch(Exception e)
 				{
@@ -234,7 +246,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		}.execute();
 	}
 
-	private class TwixelatorCallback implements Handler.Callback
+	private class TwixelatorPreviewCallback implements Handler.Callback
 	{
 		public static final String ARG_FULL_IMAGE = "full_image";
 

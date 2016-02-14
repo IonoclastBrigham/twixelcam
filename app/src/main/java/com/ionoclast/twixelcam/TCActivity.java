@@ -21,6 +21,7 @@ public class TCActivity extends Activity
 	SurfaceView mViewTwixelated;
 
 	Button mBtnClick;
+	Button mBtnGallery;
 
 	
 	@Override
@@ -34,6 +35,7 @@ public class TCActivity extends Activity
 		mViewTwixelated = (SurfaceView)findViewById(R.id.viewTwixelated);
  
 		mBtnClick = (Button)findViewById(R.id.btnClick);
+		mBtnGallery = (Button)findViewById(R.id.btnGallery);
 	}
 
 	@Override
@@ -50,6 +52,13 @@ public class TCActivity extends Activity
 			public void onClick(View v)
 			{
 				mController.TakePhoto();
+			}
+		});
+		mBtnGallery.setOnClickListener(new View.OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				mController.OpenGallery();
 			}
 		});
 	}

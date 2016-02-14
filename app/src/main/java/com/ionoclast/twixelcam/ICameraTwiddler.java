@@ -14,4 +14,5 @@ import android.hardware.Camera;
 public interface ICameraTwiddler extends Camera.PreviewCallback, Camera.PictureCallback {
 	void AttachCamera(Camera pCamera);
 	void CleanUp();
+	void OpenGallery();
 }
