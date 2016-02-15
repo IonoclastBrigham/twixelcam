@@ -39,7 +39,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 {
 	private static final String TAG = CameraTwixelator.class.getSimpleName();
 
-	private static final File TWIXEL_DIR;
+	public static final File TWIXEL_DIR;
 	static
 	{
 		File tDcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
@@ -108,17 +108,6 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		mRenderThread.removeCallbacksAndMessages(null);
 		mRenderThread.getLooper().getThread().interrupt();
 		mRenderThread = null;
-	}
-
-	@Override
-	public void OpenGallery()
-	{
-		Intent gal = new Intent(Intent.ACTION_VIEW, Uri.fromFile(TWIXEL_DIR));
-		gal.setType("image/png");
-//		gal.setData(Uri.fromFile(TWIXEL_DIR.listFiles()[0]));
-//		gal.setData(Uri.fromFile(TWIXEL_DIR));
-//		mCtxt.startActivity(Intent.createChooser(gal, "Gallery"));
-		mCtxt.startActivity(gal);
 	}
 
 	@Override

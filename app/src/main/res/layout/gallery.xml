@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ gallery.xml
+ Twixel camera UI def
+ TwixelCam Copyright © 2016 Brigham Toskin
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			 android:layout_width="match_parent"
+			 android:layout_height="match_parent">
+
+    <android.support.v4.view.ViewPager android:id="@+id/lst_gallery"
+									   android:layout_width="match_parent"
+									   android:layout_height="match_parent"
+									   android:gravity="center" />
+
+</FrameLayout>

@@ -1,20 +1,25 @@
 // TCActivity.java
-// Twixel main activity
+// Twixel camera activity
 // TwixelCam Copyright © 2014-2016 Brigham Toskin, Christopher Tooley
 
 
-package com.ionoclast.twixelcam;
+package com.ionoclast.twixelcam.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 
+import com.ionoclast.twixelcam.CameraController;
+import com.ionoclast.twixelcam.CameraTwixelator;
+import com.ionoclast.twixelcam.R;
 
-public class TCActivity extends Activity
+
+public class CameraActivity extends Activity
 {
-	private static final String TAG = TCActivity.class.getSimpleName();
+	private static final String TAG = CameraActivity.class.getSimpleName();
 
 	SurfaceView mViewViewfinder;
 	CameraController mController;
@@ -28,7 +33,7 @@ public class TCActivity extends Activity
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+		setContentView(R.layout.camera);
 
 		mViewViewfinder = (SurfaceView)findViewById(R.id.viewViewfinder);
 		mViewViewfinder.setZOrderMediaOverlay(true);
@@ -58,7 +63,7 @@ public class TCActivity extends Activity
 		{
 			public void onClick(View v)
 			{
-				mController.OpenGallery();
+				startActivity(new Intent(CameraActivity.this, GalleryActivity.class));
 			}
 		});
 	}
