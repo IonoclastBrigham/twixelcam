@@ -8,7 +8,6 @@ package com.ionoclast.twixelcam.activity;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -22,6 +21,7 @@ import com.ionoclast.twixelcam.R;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +49,7 @@ public class GalleryActivity extends Activity
 		mFiles = listFiles();
 		mImages = new Bitmap[mFiles.length];
 		mExecutor = new ThreadPoolExecutor(1, 4, 1000, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(4));
-		new LoadBitmapsTask(0, 4).executeOnExecutor(mExecutor);
+		mExecutor.execute(new LoadBitmapsTask(0, 4));
 
 		mGalTwixelated.setAdapter(new TwixelatedPageAdapter());
 	}
@@ -69,7 +69,7 @@ public class GalleryActivity extends Activity
 		return tFiles;
 	}
 
-	private class LoadBitmapsTask extends AsyncTask<Void, Void, Void>
+	private class LoadBitmapsTask implements Runnable
 	{
 		private int mStartIndex, mCount;
 
@@ -80,7 +80,7 @@ public class GalleryActivity extends Activity
 		}
 
 		@Override
-		protected Void doInBackground(Void... pParams)
+		public void run()
 		{
 			for(int i = mStartIndex; i < mStartIndex + mCount; ++i)
 			{
@@ -93,19 +93,13 @@ public class GalleryActivity extends Activity
 					}
 				}
 			}
-
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void pVoid)
-		{
-			// ???
 		}
 	}
 
 	private class TwixelatedPageAdapter extends PagerAdapter
 	{
+		private Queue<ImageView> mRecycledViews;
+
 		@Override
 		public int getCount()
 		{
@@ -127,7 +121,7 @@ public class GalleryActivity extends Activity
 					int tNumToLoad = Math.min(mFiles.length - pPosition - 1, 4);
 					if(tNumToLoad > 0)
 					{
-						new LoadBitmapsTask(pPosition + 1, tNumToLoad).executeOnExecutor(mExecutor);
+						mExecutor.execute(new LoadBitmapsTask(pPosition + 1, tNumToLoad));
 					}
 				}
 			}
