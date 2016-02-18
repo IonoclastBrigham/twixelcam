@@ -6,15 +6,20 @@
 package com.ionoclast.twixelcam.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.MainThread;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 
 import com.ionoclast.twixelcam.CameraTwixelator;
@@ -37,7 +42,7 @@ public class GalleryActivity extends Activity
 {
 	private static final String TAG = GalleryActivity.class.getSimpleName();
 
-	private ViewPager mGalTwixelated;
+	private ViewPager mPagerTwixelated;
 	private File[] mFiles;
 	private Bitmap[] mImages;
 
@@ -51,7 +56,10 @@ public class GalleryActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.gallery);
 
-		mGalTwixelated = (ViewPager) findViewById(R.id.lst_gallery);
+		getActionBar().setHomeButtonEnabled(true);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+
+		mPagerTwixelated = (ViewPager) findViewById(R.id.pager_gallery);
 	}
 
 	@Override
@@ -64,7 +72,7 @@ public class GalleryActivity extends Activity
 		mExecutor = new ThreadPoolExecutor(1, 4, 1000, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(4));
 		mExecutor.execute(new LoadBitmapsTask(0, 4));
 
-		mGalTwixelated.setAdapter(new TwixelatedPageAdapter());
+		mPagerTwixelated.setAdapter(new TwixelatedPageAdapter());
 	}
 
 	@Override
@@ -75,7 +83,7 @@ public class GalleryActivity extends Activity
 		mExecutor.shutdownNow();
 		mExecutor = null;
 
-		mGalTwixelated.setAdapter(null);
+		mPagerTwixelated.setAdapter(null);
 
 		mFiles = null;
 		for(int i = 0; i < mImages.length; ++i)
@@ -92,6 +100,28 @@ public class GalleryActivity extends Activity
 		super.onStop();
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu pMenu)
+	{
+		getMenuInflater().inflate(R.menu.menu_gallery, pMenu);
+		return super.onCreateOptionsMenu(pMenu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem pItem)
+	{
+		switch(pItem.getItemId())
+		{
+			case android.R.id.home:
+				finish();
+				return true;
+			case R.id.menu_share:
+				launch_share();
+				return true;
+		}
+		return super.onOptionsItemSelected(pItem);
+	}
+
 	private File[] list_files()
 	{
 		File[] tFiles = CameraTwixelator.TWIXEL_DIR.listFiles();
@@ -105,6 +135,17 @@ public class GalleryActivity extends Activity
 			}
 		});
 		return tFiles;
+	}
+
+	private void launch_share()
+	{
+		int tIndex = mPagerTwixelated.getCurrentItem();
+		Uri tContentUri = CameraTwixelator.GetContentUri(this, mFiles[tIndex]);
+
+		Intent tShareIntent = new Intent(Intent.ACTION_SEND);
+		tShareIntent.putExtra(Intent.EXTRA_STREAM, tContentUri);
+		tShareIntent.setType(MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(mFiles[tIndex].toString())));
+		startActivity(Intent.createChooser(tShareIntent, "Share"));
 	}
 
 	private class LoadBitmapsTask implements Runnable

@@ -5,8 +5,9 @@
 
 package com.ionoclast.twixelcam;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -21,6 +22,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -81,7 +84,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 
 		mPreviewDimens = tParams.getPreviewSize();
 		mPreviewFormat = tParams.getPreviewFormat();
-		initJpgBuffer(tParams);
+		init_jpg_buffer(tParams);
 
 		mYuvArea = new Rect(0, 0, mPreviewDimens.width, mPreviewDimens.height);
 		mBmpOptions = new BitmapFactory.Options();
@@ -91,7 +94,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		pCamera.setPreviewCallback(this);
 	}
 
-	private void initJpgBuffer(Camera.Parameters pParams)
+	private void init_jpg_buffer(Camera.Parameters pParams)
 	{
 		// as a hard upper limit, we need W * H * 16bits of working memory,
 		// picking the larger of the preview or the picture capture size.
@@ -202,8 +205,8 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 					tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
 
 					// force update media database
-					mCtxt.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-												   Uri.fromFile(tFile)));
+					AddToContentProvider(mCtxt, tFile);
+
 				}
 				catch(Exception e)
 				{
@@ -276,5 +279,37 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 
 			return false;
 		}
+	}
+
+	public static Uri AddToContentProvider(@NonNull Context pCtxt, @NonNull File pImage)
+	{
+		ContentValues tValues = new ContentValues(2);
+		tValues.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+		tValues.put(MediaStore.Images.Media.DATA, pImage.getAbsolutePath());
+		return pCtxt.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, tValues);
+	}
+
+	public static Uri GetContentUri(@NonNull Context pCtxt, @NonNull File pImage)
+	{
+		String tPath = pImage.getAbsolutePath();
+		Cursor tCursor = pCtxt.getContentResolver().query(
+				MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+				new String[]{MediaStore.Images.Media._ID},
+				MediaStore.Images.Media.DATA + "=? ",
+				new String[]{tPath},
+				null);
+
+		if(tCursor != null && tCursor.moveToFirst())
+		{
+			int tId = tCursor.getInt(tCursor.getColumnIndex(MediaStore.MediaColumns._ID));
+			tCursor.close();
+			return Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "" + tId);
+		}
+		else if(pImage.exists())
+		{
+			return AddToContentProvider(pCtxt, pImage);
+		}
+
+		return null;
 	}
 }
