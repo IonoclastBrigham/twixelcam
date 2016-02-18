@@ -3,7 +3,7 @@
 // TwixelCam - Copyright © 2014-2016 Brigham Toskin, Christopher Tooley
 
 
-package com.ionoclast.twixelcam;
+package com.ionoclast.camera;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;

@@ -30,6 +30,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
+import com.ionoclast.camera.ICameraTwiddler;
 import com.ionoclast.util.ByteArrayWrapperOutputStream;
 
 import java.io.File;
@@ -66,15 +67,22 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 
 	public CameraTwixelator(SurfaceView pViewTwixelated)
 	{
+		this(pViewTwixelated.getContext());
+
 		mView = pViewTwixelated;
 		mHolder = pViewTwixelated.getHolder();
 		mHolder.addCallback(this);
-		mCtxt = pViewTwixelated.getContext();
 
 		HandlerThread tThread = new HandlerThread("twixelator");
 		tThread.start();
 		mRenderThread = new Handler(tThread.getLooper(),
 									new TwixelatorPreviewCallback());
+	}
+
+	public CameraTwixelator(Context pCtxt)
+	{
+		mCtxt = pCtxt;
+		mTwixelateXform = new Matrix();
 	}
 
 	@Override
@@ -89,7 +97,6 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		mYuvArea = new Rect(0, 0, mPreviewDimens.width, mPreviewDimens.height);
 		mBmpOptions = new BitmapFactory.Options();
 		mBmpOptions.inPreferredConfig = Config.RGB_565;
-		mTwixelateXform = new Matrix();
 
 		pCamera.setPreviewCallback(this);
 	}
@@ -144,15 +151,13 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 		return decode_jpg_data(mJpgBytesOutStream.toByteArray(), mJpgBytesOutStream.size());
 	}
 
-	private Bitmap twixelate_bmp(Bitmap pBitmap)
+	public Bitmap TwixelateBmp(Bitmap pBitmap)
 	{
 		int tWidth = pBitmap.getWidth(), tHeight = pBitmap.getHeight();
 		mTwixelateXform.reset();
 		mTwixelateXform.preRotate(90);
 		mTwixelateXform.postScale(10.0f / tHeight, 14.0f / tWidth);
-		return Bitmap.createBitmap(pBitmap, 0, 0,
-								   tWidth, tHeight,
-								   mTwixelateXform, true);
+		return Bitmap.createBitmap(pBitmap, 0, 0, tWidth, tHeight, mTwixelateXform, true);
 	}
 
 	@Override
@@ -184,47 +189,12 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 					// TODO
 					return null;
 				}
-				Bitmap tTwixelated = twixelate_bmp(tCapturedBmp);
+				Bitmap tTwixelated = TwixelateBmp(tCapturedBmp);
 				tCapturedBmp.recycle();
 				Bitmap tUpScaled = Bitmap.createScaledBitmap(tTwixelated, 400, 560, false);
 				tTwixelated.recycle();
 
-				// write file
-				FileOutputStream tOut = null;
-				try
-				{
-					if(!TWIXEL_DIR.exists() && !TWIXEL_DIR.mkdirs())
-					{
-						Log.e(TAG, "Error: unable to create output dir");
-						Toast.makeText(mCtxt, "Error Creating Output Dir", Toast.LENGTH_LONG).show();
-						return null;
-					}
-
-					File tFile = File.createTempFile("twixel", ".png", TWIXEL_DIR);
-					tOut = new FileOutputStream(tFile);
-					tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
-
-					// force update media database
-					AddToContentProvider(mCtxt, tFile);
-
-				}
-				catch(Exception e)
-				{
-					Log.e(TAG, "Error", e);
-				}
-				finally
-				{
-					try
-					{
-						tOut.close();
-					}
-					catch(Exception e)
-					{
-						// ignore
-					}
-					tUpScaled.recycle();
-				}
-
+				SaveTwixelFile(tUpScaled);
 				return null;
 			}
 
@@ -236,6 +206,44 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 				pCamera.startPreview();
 			}
 		}.execute();
+	}
+
+	public void SaveTwixelFile(Bitmap tUpScaled)
+	{
+		FileOutputStream tOut = null;
+		try
+		{
+			if(!TWIXEL_DIR.exists() && !TWIXEL_DIR.mkdirs())
+			{
+				Log.e(TAG, "Error: unable to create output dir");
+				Toast.makeText(mCtxt, "Error Creating Output Dir", Toast.LENGTH_LONG).show();
+				return;
+			}
+
+			File tFile = File.createTempFile("twixel", ".png", TWIXEL_DIR);
+			tOut = new FileOutputStream(tFile);
+			tUpScaled.compress(Bitmap.CompressFormat.PNG, 0, tOut);
+
+			// force update media database
+			AddToContentProvider(mCtxt, tFile);
+
+		}
+		catch(Exception e)
+		{
+			Log.e(TAG, "Error", e);
+		}
+		finally
+		{
+			try
+			{
+				tOut.close();
+			}
+			catch(Exception e)
+			{
+				// ignore
+			}
+			tUpScaled.recycle();
+		}
 	}
 
 	private class TwixelatorPreviewCallback implements Handler.Callback
@@ -252,7 +260,7 @@ public class CameraTwixelator implements SurfaceHolder.Callback, ICameraTwiddler
 				return false;
 			}
 
-			final Bitmap tTwixelated =  twixelate_bmp(tPreviewBmp);
+			final Bitmap tTwixelated =  TwixelateBmp(tPreviewBmp);
 			tPreviewBmp.recycle();
 
 			mView.post(new Runnable()

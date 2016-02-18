@@ -12,7 +12,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 
-import com.ionoclast.twixelcam.CameraController;
+import com.ionoclast.camera.CameraController;
 import com.ionoclast.twixelcam.CameraTwixelator;
 import com.ionoclast.twixelcam.R;
 
