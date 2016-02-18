@@ -42,6 +42,8 @@ public class GalleryActivity extends Activity
 {
 	private static final String TAG = GalleryActivity.class.getSimpleName();
 
+	private static final String KEY_SELECTED_PAGE = "selected_page";
+
 	private ViewPager mPagerTwixelated;
 	private File[] mFiles;
 	private Bitmap[] mImages;
@@ -49,6 +51,7 @@ public class GalleryActivity extends Activity
 	private ThreadPoolExecutor mExecutor;
 
 	private boolean mStopping = false;
+	private int mSelected = -1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -63,6 +66,24 @@ public class GalleryActivity extends Activity
 	}
 
 	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState)
+	{
+		super.onRestoreInstanceState(savedInstanceState);
+
+		mSelected = savedInstanceState.getInt(KEY_SELECTED_PAGE, 0);
+		mPagerTwixelated.setCurrentItem(mSelected);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle pOutState)
+	{
+		super.onSaveInstanceState(pOutState);
+
+		mSelected = mPagerTwixelated.getCurrentItem();
+		pOutState.putInt(KEY_SELECTED_PAGE, mSelected);
+	}
+
+	@Override
 	public void onStart()
 	{
 		super.onStart();
@@ -73,6 +94,10 @@ public class GalleryActivity extends Activity
 		mExecutor.execute(new LoadBitmapsTask(0, 4));
 
 		mPagerTwixelated.setAdapter(new TwixelatedPageAdapter());
+		if(mSelected > -1)
+		{
+			mPagerTwixelated.setCurrentItem(mSelected);
+		}
 	}
 
 	@Override
