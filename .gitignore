@@ -33,6 +33,8 @@ Thumbs.db
 .idea/dictionaries/*
 .idea/codeStyleSettings.xml
 .idea/libraries
+.idea/encodings.xml
+.idea/gradle.xml
 *.iml
 
 # build products and caching/logging

@@ -15,7 +15,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import com.ionoclast.twixelcam.CameraTwixelator;
+import com.ionoclast.twixelcam.camera.CameraTwixelator;
 import com.ionoclast.twixelcam.R;
 
 import java.io.FileInputStream;

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-	<string name="hello">Hello World, TCActivity!</string>
 	<string name="app_name">TwixelCam</string>
+
+	<string name="pref_size_title">Output Image Scaling (%1$sx)</string>
+	<string name="pref_size_dialog_title">Output Image Scaling</string>
 
 </resources>

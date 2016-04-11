@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ arrays.xml
+ App data def
+ TwixelCam Copyright © 2016 Brigham Toskin
+-->
+<resources>
+
+	<string-array name="array_pref_scale_entries">
+		<item>140 × 100 (10x)</item>
+		<item>280 × 200 (20x)</item>
+		<item>560 × 400 (40x)</item>
+		<item>1120 × 800 (80x)</item>
+	</string-array>
+
+	<string-array name="array_pref_scale_values">
+		<item>10</item>
+		<item>20</item>
+		<item>40</item>
+		<item>80</item>
+	</string-array>
+
+</resources>

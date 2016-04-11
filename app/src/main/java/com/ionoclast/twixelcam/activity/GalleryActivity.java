@@ -22,7 +22,7 @@ import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 
-import com.ionoclast.twixelcam.CameraTwixelator;
+import com.ionoclast.twixelcam.camera.CameraTwixelator;
 import com.ionoclast.twixelcam.R;
 
 import java.io.File;

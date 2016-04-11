@@ -5,16 +5,18 @@
  TwixelCam Copyright © 2014-2016 Brigham Toskin, Christopher Tooley
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/camera_frame"
 				android:orientation="vertical"
 				android:layout_width="fill_parent"
 				android:layout_height="fill_parent">
 
 	<SurfaceView android:id="@+id/viewTwixelated"
-		android:layout_width="fill_parent" android:layout_height="fill_parent" />
+				 android:layout_width="fill_parent"
+				 android:layout_height="fill_parent" />
 
 	<SurfaceView android:id="@+id/viewViewfinder"
-		android:layout_width="100dip" android:layout_height="140dip"
-		android:layout_alignParentRight="true" />
+				 android:layout_width="100dip" android:layout_height="140dip"
+				 android:layout_alignParentRight="true" />
 
 	<Button android:id="@+id/btnClick"
 			android:layout_width="wrap_content"
@@ -29,5 +31,12 @@
 			android:layout_alignParentBottom="true"
 			android:layout_alignParentRight="true"
 			android:text="Gallery" />
+
+	<View android:id="@+id/prefs_container"
+	      android:layout_width="match_parent"
+	      android:layout_height="match_parent"
+	      android:layout_alignParentTop="true"
+	      android:background="@color/dark_gray_80"
+	      android:visibility="gone"/>
 
 </RelativeLayout>

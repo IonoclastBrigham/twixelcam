@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- menu_gallery.xml
- Twixel gallery menu def
+ menu_camera.xml
+ Twixel camera screen menu def
  TwixelCam Copyright © 2016 Brigham Toskin
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<item android:id="@+id/menu_share"
-	      android:title="Share"
+	<item android:id="@+id/menu_settings"
+	      android:title="Settings"
 	      android:showAsAction="always"
-	      android:icon="@android:drawable/ic_menu_share" />
+	      android:icon="@android:drawable/ic_menu_preferences" />
 
 </menu>
